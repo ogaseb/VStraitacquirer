@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35122.118
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CakeBuild", "CakeBuild\CakeBuild.csproj", "{B7C4C887-38D5-43E2-A964-3FCCC72BF0C6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "traitacquirer", "traitacquirer\traitacquirer.csproj", "{AACC9570-33F4-4982-970E-507B33BC55D4}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7C4C887-38D5-43E2-A964-3FCCC72BF0C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7C4C887-38D5-43E2-A964-3FCCC72BF0C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7C4C887-38D5-43E2-A964-3FCCC72BF0C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7C4C887-38D5-43E2-A964-3FCCC72BF0C6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AACC9570-33F4-4982-970E-507B33BC55D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AACC9570-33F4-4982-970E-507B33BC55D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AACC9570-33F4-4982-970E-507B33BC55D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AACC9570-33F4-4982-970E-507B33BC55D4}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA981492-BA04-4B31-AD3B-1266F2CD73AD}
+	EndGlobalSection
+EndGlobal

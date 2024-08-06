@@ -1,0 +1,13 @@
+{
+  "item-trait-manual-scroll-bowyer": "Trait manual scroll (Bowyer)",
+  "item-trait-manual-scroll-improviser": "Trait manual scroll (Improviser)",
+  "item-trait-manual-scroll-tinkerer": "Trait manual scroll (Tinkerer)",
+  "item-trait-manual-scroll-merciless": "Trait manual scroll (Merciless)",
+  "item-trait-manual-scroll-clothier": "Trait manual scroll (Clothier)",
+  "heldhelp-acquiretrait": "Acquire the trait",
+  "manualtype-bowyer": "Contains the knowledge of a bowyer",
+  "manualtype-improviser": "Contains the knowledge of an improviser",
+  "manualtype-tinkerer": "Contains the knowledge of a tinkerer",
+  "manualtype-merciless": "Contains the knowledge of a merciless blackguard",
+  "manualtype-clothier": "Contains the knowledge of a clothier"
+}
