@@ -1,0 +1,2 @@
+Figured out how all the relevant systems and code works
+Looks like the old mod isn't too far away from being workable so long as it's updated a bit so it seems a waste not to use it, this branch will remain in case I change my mind
