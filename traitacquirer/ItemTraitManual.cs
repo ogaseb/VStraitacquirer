@@ -16,7 +16,7 @@ namespace Vintagestory.GameContent
 
 //namespace traitacquirer
 {
-    internal class ItemTraitManual : ItemBook
+    internal class ItemTraitManual : Item
     {
         public override void OnHeldInteractStart(ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
         {
@@ -31,16 +31,9 @@ namespace Vintagestory.GameContent
                 tree.SetString("playeruid", byPlayer?.PlayerUID);
                 tree.SetString("trait", itemslot.Itemstack.Item.Variant.Get("trait"));
                 tree.SetItemstack("itemstack", itemslot.Itemstack.Clone());
-                /*
-                List<string> newExtraTraits = new List<string>();
-                string[] extraTraits = byEntity.WatchedAttributes.GetStringArray("extraTraits");
-                if (extraTraits != null) { 
-                    newExtraTraits.AddRange(extraTraits);
-                }
-                newExtraTraits.Add(tree.GetString("trait"));
-                byEntity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
-                */
-                api.Event.PushEvent("traitAcquisition", tree);
+                tree.SetString("action", itemslot.Itemstack.Item.Variant.Get("action"));
+
+                api.Event.PushEvent("traitItem", tree);
             }
 
             base.OnHeldInteractStart(itemslot, byEntity, blockSel, entitySel, firstEvent, ref handling);

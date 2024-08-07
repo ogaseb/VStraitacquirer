@@ -2,6 +2,16 @@
   "code": "trait-manual",
   "class": "traitacquirer.ItemTraitManual",
   "maxstacksize": 1,
+  "behavioursByType": {
+    "*": [
+      {
+        "name": "TraitItem",
+        "properties": {
+          
+        }
+      }
+    ]
+  },
   "behaviors": [
     {
       "name": "GroundStorable",
@@ -88,7 +98,11 @@
     },
     {
       "code": "trait",
-      "states": [ "bowyer", "improviser", "tinkerer", "merciless", "clothier" ],
+      "states": [ "bowyer", "improviser", "tinkerer", "merciless", "clothier", "technical" ]
+    },
+    {
+      "code": "action",
+      "states": ["add","remove"]
     }
   ],
   "shapeByType": {

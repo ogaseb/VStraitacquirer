@@ -47,8 +47,7 @@ namespace traitacquirer
         {
             this.sapi = api;
             loadCharacterClasses();
-            api.Event.RegisterEventBusListener(OnAcquireTrait, 0.5, "traitAcquisition");
-            //api.RegisterCommand();
+            api.Event.RegisterEventBusListener(AcquireTraitEventHandler, 0.5, "traitItem");
             acquireTraitCommand();
             giveTraitCommand();
         }
@@ -223,44 +222,42 @@ namespace traitacquirer
             return fulldesc.ToString();
         }
 
-        public void OnAcquireTrait(string eventName, ref EnumHandling handling, IAttribute data)
+        public void AcquireTraitEventHandler(string eventName, ref EnumHandling handling, IAttribute data)
         {
             TreeAttribute tree = data as TreeAttribute;
             string playerUid = tree.GetString("playeruid");
-            string traitName = tree.GetString("trait");
-            //ItemStack itemstack = tree.GetItemstack("itemstack");
+            string trait = tree.GetString("trait");
+            ItemStack itemstack = tree.GetItemstack("itemstack");
+            string action = tree.GetString("action");
 
+        }
+
+        public void processTrait(string playerUid, string traitName, string action)
+        {
             IServerPlayer plr = sapi.World.PlayerByUid(playerUid) as IServerPlayer;
-
-            //ItemSlot itemslot = plr.InventoryManager.ActiveHotbarSlot;
             Trait trait = traits.Find(x => x.Code == traitName);
-
-            /*
-            List<string> newExtraTraits = new List<string>();
-            string[] extraTraits = byEntity.WatchedAttributes.GetStringArray("extraTraits");
-            if (extraTraits != null) { 
-                newExtraTraits.AddRange(extraTraits);
-            }
-            newExtraTraits.Add(tree.GetString("trait"));
-            byEntity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
-            */
-            
 
             if (trait != null)
             {
-                //characterSystem.applyTraitAttributes(plr);
                 List<string> newExtraTraits = new List<string>();
                 string[] extraTraits = plr.Entity.WatchedAttributes.GetStringArray("extraTraits");
                 if (extraTraits != null)
                 {
                     newExtraTraits.AddRange(extraTraits);
                 }
-                if (!newExtraTraits.Contains(traitName))
+                if (!newExtraTraits.Contains(traitName) && action == "add")
                 {
                     newExtraTraits.Add(traitName);
                     plr.Entity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
                     applyTraitAttributes(plr.Entity);
                     plr.SendIngameError("Trait Acquired", Lang.Get("Trait Acquired"));
+                }
+                else if (newExtraTraits.Contains(traitName) && action == "remove")
+                {
+                    newExtraTraits.Remove(traitName);
+                    plr.Entity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
+                    applyTraitAttributes(plr.Entity);
+                    plr.SendIngameError("Trait Removed", Lang.Get("Trait Removed"));
                 }
                 else
                 {
@@ -274,12 +271,7 @@ namespace traitacquirer
                 plr.SendIngameError("Trait is Null", Lang.Get("Trait is Null"));
                 return;
             }
-            //itemslot.MarkDirty();
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
-
-            handling = EnumHandling.PreventDefault;
-
-            //DiscoverLore(discovery, plr, itemslot);
         }
 
         public void applyTraitAttributes(EntityPlayer eplr) //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
