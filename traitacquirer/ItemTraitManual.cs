@@ -20,21 +20,7 @@ namespace Vintagestory.GameContent
     {
         public override void OnHeldInteractStart(ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
         {
-            if (byEntity.World.Side == EnumAppSide.Server)
-            {
-                IPlayer byPlayer = null;
-                if (byEntity is EntityPlayer) byPlayer = byEntity.World.PlayerByUid(((EntityPlayer)byEntity).PlayerUID);
-
-                if (!(byPlayer is IServerPlayer)) return;
-
-                TreeAttribute tree = new TreeAttribute();
-                tree.SetString("playeruid", byPlayer?.PlayerUID);
-                tree.SetString("trait", itemslot.Itemstack.Item.Variant.Get("trait"));
-                tree.SetItemstack("itemstack", itemslot.Itemstack.Clone());
-                tree.SetString("action", itemslot.Itemstack.Item.Variant.Get("action"));
-
-                api.Event.PushEvent("traitItem", tree);
-            }
+            
 
             base.OnHeldInteractStart(itemslot, byEntity, blockSel, entitySel, firstEvent, ref handling);
             handling = EnumHandHandling.PreventDefault;
@@ -57,7 +43,7 @@ namespace Vintagestory.GameContent
              }
 
              return secondsUsed < 2;*/
-            return false;
+            return secondsUsed < 2;
         }
 
 
@@ -69,9 +55,28 @@ namespace Vintagestory.GameContent
 
 
 
-        public override void OnHeldInteractStop(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
+        public override void OnHeldInteractStop(float secondsUsed, ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
         {
             if (secondsUsed < 1.9) return;
+
+            if (byEntity.World.Side == EnumAppSide.Server)
+            {
+                IPlayer byPlayer = null;
+                if (byEntity is EntityPlayer) byPlayer = byEntity.World.PlayerByUid(((EntityPlayer)byEntity).PlayerUID);
+
+                if (!(byPlayer is IServerPlayer)) return;
+
+
+                TreeAttribute tree = new TreeAttribute();
+                tree.SetString("playeruid", byPlayer?.PlayerUID);
+                tree.SetStringArray("addtraits", itemslot.Itemstack.ItemAttributes["traitdata"]["add"].AsArray<string>());
+                tree.SetStringArray("removetraits", itemslot.Itemstack.ItemAttributes["traitdata"]["remove"].AsArray<string>());
+                tree.SetItemstack("itemstack", itemslot.Itemstack.Clone());
+
+                api.Event.PushEvent("traitItem", tree);
+            }
+            itemslot.TakeOut(1);
+            itemslot.MarkDirty();
         }
 
 

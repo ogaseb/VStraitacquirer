@@ -2,16 +2,6 @@
   "code": "trait-manual",
   "class": "traitacquirer.ItemTraitManual",
   "maxstacksize": 1,
-  "behavioursByType": {
-    "*": [
-      {
-        "name": "TraitItem",
-        "properties": {
-          
-        }
-      }
-    ]
-  },
   "behaviors": [
     {
       "name": "GroundStorable",
@@ -29,6 +19,10 @@
     }
   ],
   "attributes": {
+    "traitdata": {
+      "add": [ "bowyer", "improviser" ],
+      "remove": [ "technical" ]
+    },
     "displaycaseable": true,
     "rolledShapeByType": {
       "trait-manual-paper": "game:item/lore/scroll-unbound"
@@ -95,14 +89,6 @@
     {
       "code": "type",
       "states": [ "scroll" ]
-    },
-    {
-      "code": "trait",
-      "states": [ "bowyer", "improviser", "tinkerer", "merciless", "clothier", "technical" ]
-    },
-    {
-      "code": "action",
-      "states": ["add","remove"]
     }
   ],
   "shapeByType": {
