@@ -13,6 +13,8 @@ using System;
 using System.Data;
 using System.Xml.Linq;
 using System.Text;
+using Vintagestory.API.MathTools;
+using System.Diagnostics;
 
 namespace traitacquirer
 {
@@ -47,6 +49,64 @@ namespace traitacquirer
             loadCharacterClasses();
             api.Event.RegisterEventBusListener(OnAcquireTrait, 0.5, "traitAcquisition");
             //api.RegisterCommand();
+            acquireTraitCommand();
+            giveTraitCommand();
+        }
+
+        public void acquireTraitCommand()
+        {
+            var parsers = sapi.ChatCommands.Parsers;
+            sapi.ChatCommands.Create("acquireTrait")
+            .WithDescription("Gives the caller the given Trait")
+            .RequiresPrivilege(Privilege.gamemode)
+            .RequiresPlayer()
+            .WithArgs(parsers.Word("trait name"))
+            .HandleWith((args) =>
+            {
+                var byEntity = args.Caller.Entity;
+                string traitName = args[0].ToString();
+                if (traits.Find(x => x.Code == traitName) == null)
+                {
+                    return TextCommandResult.Error("Trait does not exist");
+                }
+                IPlayer byPlayer = null;
+                if (byEntity is EntityPlayer) byPlayer = byEntity.World.PlayerByUid(((EntityPlayer)byEntity).PlayerUID);
+                TreeAttribute tree = new TreeAttribute();
+                tree.SetString("playeruid", byPlayer?.PlayerUID);
+                tree.SetString("trait", traitName);
+                //tree.SetItemstack("itemstack", itemslot.Itemstack.Clone());
+                EnumHandling handling = new EnumHandling();
+                OnAcquireTrait("", ref handling, tree);
+                return TextCommandResult.Success("Trait acquired");
+            });
+        }
+
+        public void giveTraitCommand()
+        {
+            var parsers = sapi.ChatCommands.Parsers;
+            sapi.ChatCommands.Create("giveTrait")
+            .WithDescription("Gives the given Trait to the chosen player")
+            .RequiresPrivilege(Privilege.root)
+            .RequiresPlayer()
+            .WithArgs(parsers.Word("trait name"), parsers.OnlinePlayer("target player"))
+            .HandleWith((args) =>
+            {
+                IServerPlayer targetPlayer = (IServerPlayer)args[1];
+                var byEntity = args.Caller.Entity;
+                
+                string traitName = args[0].ToString();
+                if (traits.Find(x => x.Code == traitName) == null)
+                {
+                    return TextCommandResult.Error("Trait does not exist");
+                }
+                TreeAttribute tree = new TreeAttribute();
+                tree.SetString("playeruid", targetPlayer?.PlayerUID);
+                tree.SetString("trait", traitName);
+                //tree.SetItemstack("itemstack", itemslot.Itemstack.Clone());
+                EnumHandling handling = new EnumHandling();
+                OnAcquireTrait("", ref handling, tree);
+                return TextCommandResult.Success("Trait given");
+            });
         }
 
         public override void StartClientSide(ICoreClientAPI api)
@@ -59,7 +119,7 @@ namespace traitacquirer
 
         private void composeTraitsTab(GuiComposer compo)
         {
-            charDlg.SingleComposer.GetTextArea("");
+            //charDlg.SingleComposer.GetTextArea("");
             this.clippingBounds = ElementBounds.Fixed(0, 25, 385 - 5 - 1, 200 - 1);//.FixedUnder(commmandsBounds, spacing - 10);
             compo.BeginClip(clippingBounds);
             compo.AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 25, 385, 200), "text");
@@ -163,15 +223,16 @@ namespace traitacquirer
             return fulldesc.ToString();
         }
 
-        private void OnAcquireTrait(string eventName, ref EnumHandling handling, IAttribute data)
+        public void OnAcquireTrait(string eventName, ref EnumHandling handling, IAttribute data)
         {
             TreeAttribute tree = data as TreeAttribute;
             string playerUid = tree.GetString("playeruid");
             string traitName = tree.GetString("trait");
+            //ItemStack itemstack = tree.GetItemstack("itemstack");
 
             IServerPlayer plr = sapi.World.PlayerByUid(playerUid) as IServerPlayer;
 
-            ItemSlot itemslot = plr.InventoryManager.ActiveHotbarSlot;
+            //ItemSlot itemslot = plr.InventoryManager.ActiveHotbarSlot;
             Trait trait = traits.Find(x => x.Code == traitName);
 
             /*
@@ -213,8 +274,7 @@ namespace traitacquirer
                 plr.SendIngameError("Trait is Null", Lang.Get("Trait is Null"));
                 return;
             }
-
-            itemslot.MarkDirty();
+            //itemslot.MarkDirty();
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
 
             handling = EnumHandling.PreventDefault;
@@ -262,7 +322,7 @@ namespace traitacquirer
 
             eplr.GetBehavior<EntityBehaviorHealth>()?.MarkDirty();
         }
-        private void loadCharacterClasses() //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
+        public void loadCharacterClasses() //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
         {
             //onLoadedUniversal();
             this.traits = api.Assets.Get("config/traits.json").ToObject<List<Trait>>();
