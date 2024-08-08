@@ -30,6 +30,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
   <None Remove="assets\traitacquirer\itemtypes\utility\traitManual.json" />
+  <Content Include="traitacquirerConfig.cs" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>

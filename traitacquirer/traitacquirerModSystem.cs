@@ -42,6 +42,30 @@ namespace traitacquirer
         {
             this.api = api;
             api.RegisterItemClass(Mod.Info.ModID + ".ItemTraitManual", typeof(ItemTraitManual));
+
+            try
+            {
+                traitacquirerConfig traitacquirerConfig = api.LoadModConfig<traitacquirerConfig>("traitacquirer.json");
+                if (traitacquirerConfig != null)
+                {
+                    api.Logger.Notification("Mod Config successfully loaded.");
+                    traitacquirerConfig.Current = traitacquirerConfig;
+                }
+                else
+                {
+                    api.Logger.Notification("No Mod Config specified. Falling back to default settings");
+                    traitacquirerConfig.Current = traitacquirerConfig.GetDefault();
+                }
+            }
+            catch
+            {
+                traitacquirerConfig.Current = traitacquirerConfig.GetDefault();
+                api.Logger.Error("Failed to load custom mod configuration. Falling back to default settings!");
+            }
+            finally
+            {
+                api.StoreModConfig<traitacquirerConfig>(traitacquirerConfig.Current, "traitacquirer.json");
+            }
         }
 
         public override void StartServerSide(ICoreServerAPI api)
@@ -58,7 +82,7 @@ namespace traitacquirer
             var parsers = sapi.ChatCommands.Parsers;
             sapi.ChatCommands.Create("acquireTrait")
             .WithDescription("Gives the caller the given Trait, removes with the rm flag")
-            .RequiresPrivilege(Privilege.gamemode)
+            .RequiresPrivilege(traitacquirerConfig.Current.acquireCmdPrivilege)
             .RequiresPlayer()
             .WithArgs(parsers.Word("trait name"), parsers.OptionalWordRange("remove flag", "rm"))
             .HandleWith((args) =>
@@ -91,7 +115,7 @@ namespace traitacquirer
             var parsers = sapi.ChatCommands.Parsers;
             sapi.ChatCommands.Create("giveTrait")
             .WithDescription("Gives the given Trait to the chosen player, removes with the rm flag")
-            .RequiresPrivilege(Privilege.root)
+            .RequiresPrivilege(traitacquirerConfig.Current.giveCmdPrivilege)
             .RequiresPlayer()
             .WithArgs(parsers.Word("trait name"), parsers.OnlinePlayer("target player"), parsers.OptionalWordRange("remove flag", "rm"))
             .HandleWith((args) =>
