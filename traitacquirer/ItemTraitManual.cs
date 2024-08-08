@@ -20,29 +20,12 @@ namespace Vintagestory.GameContent
     {
         public override void OnHeldInteractStart(ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, bool firstEvent, ref EnumHandHandling handling)
         {
-            
-
             base.OnHeldInteractStart(itemslot, byEntity, blockSel, entitySel, firstEvent, ref handling);
             handling = EnumHandHandling.PreventDefault;
         }
 
         public override bool OnHeldInteractStep(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
         {
-            /* if (byEntity.World is IClientWorldAccessor)
-             {
-                 ModelTransform tf = new ModelTransform();
-                 tf.EnsureDefaultValues();
-
-                 float offset = GameMath.Clamp(secondsUsed * 3, 0, 2f);
-
-                 tf.Translation.Set(0, offset, offset / 8);
-                 tf.Origin.Set(0.9f, -0.2f, 0.5f);
-                 tf.Rotation.Set(0, 0, offset * 20);
-
-                 byEntity.Controls.UsingHeldItemTransform = tf;
-             }
-
-             return secondsUsed < 2;*/
             return secondsUsed < 2;
         }
 
