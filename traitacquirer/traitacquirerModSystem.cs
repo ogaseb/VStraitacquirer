@@ -16,6 +16,7 @@ using System.Text;
 using Vintagestory.API.MathTools;
 using System.Diagnostics;
 using static System.Collections.Specialized.BitVector32;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace traitacquirer
 {
@@ -33,10 +34,9 @@ namespace traitacquirer
         public Dictionary<string, CharacterClass> characterClassesByCode = new Dictionary<string, CharacterClass>();
         GuiDialogCharacterBase charDlg;
 
-        GuiElementRichtext logtextElem;
-        ElementBounds clippingBounds;// = ElementBounds.Fixed(0, 0, innerWidth - 20 - 1, 200 - 1).FixedUnder(commmandsBounds, spacing - 10);
-        ElementBounds scrollbarBounds;// = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth + 6, -1).WithFixedWidth(20).FixedGrow(0, 2);
-        ElementBounds commmandsBounds;// = ElementBounds.Fixed(0, 30, innerWidth, 30);
+        GuiElementRichtext richtextElem;
+        ElementBounds clippingBounds;
+        ElementBounds scrollbarBounds;
         int spacing = 5;
         public override void Start(ICoreAPI api)
         {
@@ -128,25 +128,24 @@ namespace traitacquirer
 
         private void composeTraitsTab(GuiComposer compo)
         {
-            //charDlg.SingleComposer.GetTextArea("");
-            this.clippingBounds = ElementBounds.Fixed(0, 25, 385 - 5 - 1, 200 - 1);//.FixedUnder(commmandsBounds, spacing - 10);
-            compo.BeginClip(clippingBounds);
-            compo.AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 25, 385, 200), "text");
-            //compo.AddDynamicText(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 25, 385, 200), "text");
-            this.logtextElem = compo.GetRichtext("text");
-            //logtextElem.Bounds.CalcWorldBounds();
-            //double innerWidth = logtextElem.Bounds.absInnerWidth;
-            //this.commmandsBounds = ElementBounds.Fixed(0, 30, innerWidth, 30);
-            this.scrollbarBounds = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth + 6, -1).WithFixedWidth(20).FixedGrow(0, 2);
 
-            compo.AddVerticalScrollbar(OnNewScrollbarvalue, this.scrollbarBounds, "scrollbar");
+            this.clippingBounds = ElementBounds.Fixed(0, 25, 385, 310);
+            compo.BeginClip(clippingBounds);
+            compo.AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 0, 385, 310), "text");
             compo.EndClip();
+            this.scrollbarBounds = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth - 3, -6).WithFixedWidth(6).FixedGrow(0, 2);
+            compo.AddVerticalScrollbar(OnNewScrollbarValue, this.scrollbarBounds, "scrollbar");
+            this.richtextElem = compo.GetRichtext("text");
+
+            compo.GetScrollbar("scrollbar").SetHeights(
+                (float)100, (float)310
+            );
         }
-        private void OnNewScrollbarvalue(float value)
+        private void OnNewScrollbarValue(float value)
         {
-            //GuiElementDynamicText logtextElem = compo.GetDynamicText("text");
-            logtextElem.Bounds.fixedY = 3 - value;
-            logtextElem.Bounds.CalcWorldBounds();
+            richtextElem.Bounds.fixedY = 10 - value;
+            richtextElem.Bounds.CalcWorldBounds();
+
         }
 
         string getClassTraitText()
@@ -156,6 +155,8 @@ namespace traitacquirer
 
             StringBuilder fulldesc = new StringBuilder();
             StringBuilder attributes = new StringBuilder();
+
+            fulldesc.AppendLine(Lang.Get("Class Traits: "));
 
             var chartraits = chclass.Traits.Select(code => TraitsByCode[code]).OrderBy(trait => (int)trait.Type);
 
@@ -196,9 +197,11 @@ namespace traitacquirer
             fulldesc.AppendLine(Lang.Get("Extra Traits: "));
 
             string[] extraTraits = capi.World.Player.Entity.WatchedAttributes.GetStringArray("extraTraits");
-
-            var extratraits = extraTraits.OrderBy(code => (int)TraitsByCode[code].Type);
-            //var extratraits = chclass.Traits.Select(code => TraitsByCode[code]).OrderBy(trait => (int)trait.Type);
+            IOrderedEnumerable<string> extratraits = Enumerable.Empty<string>().OrderBy(x => 1); ;
+            if (extraTraits != null)
+            {
+                extratraits = extraTraits?.OrderBy(code => (int)TraitsByCode[code].Type);
+            }
 
             foreach (var code in extratraits)
             {
@@ -238,7 +241,6 @@ namespace traitacquirer
             string playerUid = tree.GetString("playeruid");
             string[] addtraits = tree.GetStringArray("addtraits");
             string[] removetraits = tree.GetStringArray("removetraits");
-            ItemStack itemstack = tree.GetItemstack("itemstack");
             processTraits(playerUid, addtraits, removetraits);
         }
 
@@ -283,6 +285,7 @@ namespace traitacquirer
             }
             plr.Entity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
             applyTraitAttributes(plr.Entity);
+            plr.Entity.WatchedAttributes.MarkPathDirty("extraTraits");
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
         }
 

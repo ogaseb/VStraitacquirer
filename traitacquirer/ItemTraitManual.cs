@@ -71,7 +71,6 @@ namespace Vintagestory.GameContent
                 tree.SetString("playeruid", byPlayer?.PlayerUID);
                 tree.SetStringArray("addtraits", itemslot.Itemstack.ItemAttributes["traitdata"]["add"].AsArray<string>());
                 tree.SetStringArray("removetraits", itemslot.Itemstack.ItemAttributes["traitdata"]["remove"].AsArray<string>());
-                tree.SetItemstack("itemstack", itemslot.Itemstack.Clone());
 
                 api.Event.PushEvent("traitItem", tree);
             }
