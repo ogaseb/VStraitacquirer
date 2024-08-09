@@ -1,9 +1,10 @@
 [
   {
+    "file": "traitacquirer:assets/itemtypes/utility/trait-manual.json",
+    "side": "client",
     "op": "add",
     "path": "/enabled",
     "value": false,
-    "file": "traitacquirer:itemtypes/utility/traitManual",
     "condition": {
       "when": "classManuals",
       "isValue": "false"
