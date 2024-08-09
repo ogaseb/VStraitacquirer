@@ -1,16 +1,54 @@
 [
 	{
 		"file": "game:itemtypes/meta/stackrandomizer",
-		"op": "addmerge",
+		"op": "addeach",
 		"path": "/attributesByType/*-gear/stacks/-",
-		"value": {
-			"code": "trait-manual-*",
-			"type": "item",
-			"quantity": {
-				"avg": 1,
-				"var": 0
+		"value": [
+			{
+				"code": "traitacquirer:trait-manual-book-clockmaker",
+				"type": "item",
+				"quantity": {
+					"avg": 1,
+					"var": 0
+				},
+				"chance": 30
 			},
-			"chance": 30
-		}
+			{
+				"code": "traitacquirer:trait-manual-book-hunter",
+				"type": "item",
+				"quantity": {
+					"avg": 1,
+					"var": 0
+				},
+				"chance": 30
+			},
+			{
+				"code": "traitacquirer:trait-manual-book-malefactor",
+				"type": "item",
+				"quantity": {
+					"avg": 1,
+					"var": 0
+				},
+				"chance": 30
+			},
+			{
+				"code": "traitacquirer:trait-manual-book-blackguard",
+				"type": "item",
+				"quantity": {
+					"avg": 1,
+					"var": 0
+				},
+				"chance": 30
+			},
+			{
+				"code": "traitacquirer:trait-manual-book-tailor",
+				"type": "item",
+				"quantity": {
+					"avg": 1,
+					"var": 0
+				},
+				"chance": 30
+			}
+		]
 	}
 ]

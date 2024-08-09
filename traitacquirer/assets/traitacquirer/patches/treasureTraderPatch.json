@@ -1,20 +1,74 @@
 [
   {
     "file": "game:entities/humanoid/trader-treasurehunter",
-    "op": "addmerge",
+    "op": "addeach",
     "path": "/attributes/tradeProps/selling/list/-",
-    "value": {
-      "code": "trait-manual-*",
-      "type": "item",
-      "stacksize": 1,
-      "stock": {
-        "avg": 1,
-        "var": 0.25
+    "value": [
+      {
+        "code": "traitacquirer:trait-manual-book-clockmaker",
+        "type": "item",
+        "stacksize": 1,
+        "stock": {
+          "avg": 1,
+          "var": 0.25
+        },
+        "price": {
+          "avg": 10,
+          "var": 4
+        }
       },
-      "price": {
-        "avg": 10,
-        "var": 4
+      {
+        "code": "traitacquirer:trait-manual-book-hunter",
+        "type": "item",
+        "stacksize": 1,
+        "stock": {
+          "avg": 1,
+          "var": 0.25
+        },
+        "price": {
+          "avg": 10,
+          "var": 4
+        }
+      },
+      {
+        "code": "traitacquirer:trait-manual-book-malefactor",
+        "type": "item",
+        "stacksize": 1,
+        "stock": {
+          "avg": 1,
+          "var": 0.25
+        },
+        "price": {
+          "avg": 10,
+          "var": 4
+        }
+      },
+      {
+        "code": "traitacquirer:trait-manual-book-blackguard",
+        "type": "item",
+        "stacksize": 1,
+        "stock": {
+          "avg": 1,
+          "var": 0.25
+        },
+        "price": {
+          "avg": 10,
+          "var": 4
+        }
+      },
+      {
+        "code": "traitacquirer:trait-manual-book-tailor",
+        "type": "item",
+        "stacksize": 1,
+        "stock": {
+          "avg": 1,
+          "var": 0.25
+        },
+        "price": {
+          "avg": 10,
+          "var": 4
+        }
       }
-    }
+    ]
   }
 ]
