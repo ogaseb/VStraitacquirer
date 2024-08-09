@@ -1,0 +1,16 @@
+[
+	{
+		"file": "game:itemtypes/meta/stackrandomizer",
+		"op": "addmerge",
+		"path": "/attributesByType/*-gear/stacks/-",
+		"value": {
+			"code": "trait-manual-*",
+			"type": "item",
+			"quantity": {
+				"avg": 1,
+				"var": 0
+			},
+			"chance": 30
+		}
+	}
+]
