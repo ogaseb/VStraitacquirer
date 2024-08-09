@@ -1,0 +1,12 @@
+[
+  {
+    "op": "add",
+    "path": "/enabled",
+    "value": false,
+    "file": "traitacquirer:itemtypes/utility/traitManual",
+    "condition": {
+      "when": "classManuals",
+      "isValue": "false"
+    }
+  }
+]

@@ -30,8 +30,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
   <None Remove="assets\traitacquirer\itemtypes\utility\traitManual.json" />
+  <None Remove="assets\traitacquirer\patches\removeTraitItemsPatch.json" />
   <None Remove="assets\traitacquirer\patches\stackrandomizerPatch.json" />
-  <None Remove="assets\treasureTraderPatch.json" />
+  <None Remove="assets\traitacquirer\patches\treasureTraderPatch.json" />
   <Content Include="traitacquirerConfig.cs" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

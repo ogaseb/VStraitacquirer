@@ -13,12 +13,14 @@ namespace traitacquirer
 
         public string acquireCmdPrivilege = "gamemode";
         public string giveCmdPrivilege = "root";
+        public string classManuals = "true";
 
         public static traitacquirerConfig GetDefault()
         {
             traitacquirerConfig config =  new traitacquirerConfig();
             config.acquireCmdPrivilege.ToString();
             config.giveCmdPrivilege.ToString();
+            config.classManuals.ToString();
             return config;
         }
     }
