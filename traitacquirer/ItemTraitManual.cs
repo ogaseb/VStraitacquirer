@@ -65,8 +65,7 @@ namespace Vintagestory.GameContent
         public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo)
         {
             base.GetHeldItemInfo(inSlot, dsc, world, withDebugInfo);
-
-            dsc.Append(Lang.Get("manualtype-{0}", inSlot.Itemstack.Attributes.GetString("trait")));
+            dsc.Append(Lang.Get("traitacquirer:manualtype-" + inSlot.Itemstack.Item.Variant["class"].ToString()));
         }
 
         public override WorldInteraction[] GetHeldInteractionHelp(ItemSlot inSlot)
@@ -75,7 +74,7 @@ namespace Vintagestory.GameContent
             {
                 new WorldInteraction
                 {
-                    ActionLangCode = "heldhelp-acquiretrait",
+                    ActionLangCode = "heldhelp-read",
                     MouseButton = EnumMouseButton.Right
                 }
             }.Append(base.GetHeldInteractionHelp(inSlot));

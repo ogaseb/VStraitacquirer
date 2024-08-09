@@ -4,10 +4,9 @@
   "item-trait-manual-book-malefactor": "Worn Survival Manual",
   "item-trait-manual-book-blackguard": "Guardsman's Code",
   "item-trait-manual-book-tailor": "Tailoring for Beginners",
-  "heldhelp-acquiretrait": "Acquire the trait",
-  "manualtype-bowyer": "Contains the knowledge of a bowyer",
-  "manualtype-improviser": "Contains the knowledge of an improviser",
-  "manualtype-tinkerer": "Contains the knowledge of a tinkerer",
-  "manualtype-merciless": "Contains the knowledge of a merciless blackguard",
-  "manualtype-clothier": "Contains the knowledge of a clothier"
+  "manualtype-clockmaker": "Contains the knowledge required to tinker with machines",
+  "manualtype-hunter": "Contains the knowledge required to make various bows",
+  "manualtype-malefactor": "Contains the knowledge required to make simple weapons",
+  "manualtype-blackguard": "Contains the knowledge of a merciless blackguard's arms",
+  "manualtype-tailor": "Contains the knowledge required to make clothes"
 }
