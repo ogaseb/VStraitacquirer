@@ -3,6 +3,11 @@
     "file": "game:entities/humanoid/trader-treasurehunter",
     "op": "addeach",
     "path": "/attributes/tradeProps/selling/list/-",
+    "side": "server",
+    "condition": {
+      "when": "classManuals",
+      "isValue": "true"
+    },
     "value": [
       {
         "code": "traitacquirer:trait-manual-book-clockmaker",

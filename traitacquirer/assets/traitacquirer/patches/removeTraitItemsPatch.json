@@ -1,7 +1,6 @@
 [
   {
-    "file": "traitacquirer:assets/itemtypes/utility/trait-manual.json",
-    "side": "client",
+    "file": "traitacquirer:itemtypes/utility/trait-manual",
     "op": "add",
     "path": "/enabled",
     "value": false,

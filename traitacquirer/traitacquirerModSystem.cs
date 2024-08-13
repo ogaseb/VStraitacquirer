@@ -17,11 +17,13 @@ using Vintagestory.API.MathTools;
 using System.Diagnostics;
 using static System.Collections.Specialized.BitVector32;
 using static System.Net.Mime.MediaTypeNames;
+using Vintagestory.ServerMods.NoObf;
 
 namespace traitacquirer
 {
     public class traitacquirerModSystem : ModSystem
     {
+        ModJsonPatchLoader patch;
         // Called on server and client
         // Useful for registering block/entity classes on both sides
         ICoreAPI api;
@@ -41,8 +43,10 @@ namespace traitacquirer
         public override void Start(ICoreAPI api)
         {
             this.api = api;
-            api.RegisterItemClass(Mod.Info.ModID + ".ItemTraitManual", typeof(ItemTraitManual));
 
+            //Register Classes
+            api.RegisterItemClass(Mod.Info.ModID + ".ItemTraitManual", typeof(ItemTraitManual));
+            //Load Config
             try
             {
                 traitacquirerConfig traitacquirerConfig = api.LoadModConfig<traitacquirerConfig>("traitacquirer.json");
@@ -66,6 +70,8 @@ namespace traitacquirer
             {
                 api.StoreModConfig<traitacquirerConfig>(traitacquirerConfig.Current, "traitacquirer.json");
             }
+            //Set World Config
+            api.World.Config.SetBool("classManuals", traitacquirerConfig.Current.classManuals);
         }
 
         public override void StartServerSide(ICoreServerAPI api)

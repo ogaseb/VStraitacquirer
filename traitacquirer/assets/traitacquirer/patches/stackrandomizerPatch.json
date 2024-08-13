@@ -3,6 +3,11 @@
 		"file": "game:itemtypes/meta/stackrandomizer",
 		"op": "addeach",
 		"path": "/attributesByType/*-gear/stacks/-",
+		"side": "server",
+		"condition": {
+			"when": "traitacquirerclassManuals",
+			"isValue": "true"
+		},
 		"value": [
 			{
 				"code": "traitacquirer:trait-manual-book-clockmaker",
