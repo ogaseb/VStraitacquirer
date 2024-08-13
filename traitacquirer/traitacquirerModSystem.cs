@@ -134,7 +134,7 @@ namespace traitacquirer
                 {
                     return TextCommandResult.Error("Trait does not exist");
                 }
-                if ((string)args[1] == "rm")
+                if ((string)args[2] == "rm")
                 {
                     processTraits(targetPlayer?.PlayerUID, new string[0], new string[] { traitName });
                     exitMessage = "Trait Removed";
