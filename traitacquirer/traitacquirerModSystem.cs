@@ -18,6 +18,7 @@ using System.Diagnostics;
 using static System.Collections.Specialized.BitVector32;
 using static System.Net.Mime.MediaTypeNames;
 using Vintagestory.ServerMods.NoObf;
+using System.Reflection;
 
 namespace traitacquirer
 {
@@ -154,6 +155,23 @@ namespace traitacquirer
             loadCharacterClasses();
             charDlg = api.Gui.LoadedGuis.Find(dlg => dlg is GuiDialogCharacterBase) as GuiDialogCharacterBase;
             charDlg.RenderTabHandlers.Add(composeTraitsTab);
+            
+            api.Event.BlockTexturesLoaded += cleanupTraitsTab;
+            //Vintagestory.GameContent.CharacterSystem.composeTraitsTab;
+        }
+
+        private void cleanupTraitsTab()
+        {
+            foreach (Action<GuiComposer> i in charDlg.RenderTabHandlers)
+            {
+                if (i.Target.ToString() == "Vintagestory.GameContent.CharacterSystem")
+                {
+                    charDlg.RenderTabHandlers.Remove(i);
+                    break;
+                }
+            }
+            //charDlg.RenderTabHandlers.Find(hdlr => hdlr.Target);
+            //charDlg.RenderTabHandlers.Remove(CharacterSystem.composeTraitsTab);
         }
 
         private void composeTraitsTab(GuiComposer compo)
