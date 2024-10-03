@@ -333,7 +333,7 @@ namespace traitacquirer
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
         }
 
-        public void applyTraitAttributes(EntityPlayer eplr) //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
+        public void applyTraitAttributes(EntityPlayer eplr)
         {
             string classcode = eplr.WatchedAttributes.GetString("characterClass");
             CharacterClass charclass = characterClasses.FirstOrDefault(c => c.Code == classcode);
@@ -344,7 +344,7 @@ namespace traitacquirer
             {
                 foreach (var statmod in stats.Value.ValuesByKey)
                 {
-                    if (statmod.Key == "trait")
+                    if (statmod.Key != "base")
                     {
                         stats.Value.Remove(statmod.Key);
                         break;
@@ -366,7 +366,7 @@ namespace traitacquirer
                         string attrcode = val.Key;
                         double attrvalue = val.Value;
 
-                        eplr.Stats.Set(attrcode, "trait", (float)attrvalue, true);
+                        eplr.Stats.Set(attrcode, traitcode, (float)attrvalue, true);
                     }
                 }
             }
