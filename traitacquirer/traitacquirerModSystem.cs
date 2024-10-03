@@ -5,6 +5,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
+using Vintagestory.ServerMods.NoObf;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Vintagestory.API.Common.Entities;
@@ -17,20 +18,18 @@ using Vintagestory.API.MathTools;
 using System.Diagnostics;
 using static System.Collections.Specialized.BitVector32;
 using static System.Net.Mime.MediaTypeNames;
-using Vintagestory.ServerMods.NoObf;
 using System.Reflection;
 
 namespace traitacquirer
 {
     public class traitacquirerModSystem : ModSystem
     {
-        ModJsonPatchLoader patch;
         // Called on server and client
         // Useful for registering block/entity classes on both sides
         ICoreAPI api;
         ICoreClientAPI capi;
         ICoreServerAPI sapi;
-
+        
         public List<Trait> traits = new List<Trait>();
         public List<CharacterClass> characterClasses = new List<CharacterClass>();
         public Dictionary<string, Trait> TraitsByCode = new Dictionary<string, Trait>();
@@ -157,7 +156,6 @@ namespace traitacquirer
             charDlg.RenderTabHandlers.Add(composeTraitsTab);
             
             api.Event.BlockTexturesLoaded += cleanupTraitsTab;
-            //Vintagestory.GameContent.CharacterSystem.composeTraitsTab;
         }
 
         private void cleanupTraitsTab()
@@ -170,8 +168,6 @@ namespace traitacquirer
                     break;
                 }
             }
-            //charDlg.RenderTabHandlers.Find(hdlr => hdlr.Target);
-            //charDlg.RenderTabHandlers.Remove(CharacterSystem.composeTraitsTab);
         }
 
         private void composeTraitsTab(GuiComposer compo)

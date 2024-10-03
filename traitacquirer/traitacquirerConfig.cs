@@ -14,7 +14,7 @@ namespace traitacquirer
         public string acquireCmdPrivilege = "gamemode";
         public string giveCmdPrivilege = "root";
         public bool classManuals = true;
-        //public double manualsAvgPrice = 10;
+        public double manualsAvgPrice = 10;
         //public double manualsVarPrice = 4;
         //public double manualsAvgStock = 1;
         //public double manualsVarStock = 0.25;
