@@ -29,14 +29,10 @@ namespace Vintagestory.GameContent
             return secondsUsed < 2;
         }
 
-
         public override bool OnHeldInteractCancel(float secondsUsed, ItemSlot slot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel, EnumItemUseCancelReason cancelReason)
         {
             return true;
         }
-
-
-
 
         public override void OnHeldInteractStop(float secondsUsed, ItemSlot itemslot, EntityAgent byEntity, BlockSelection blockSel, EntitySelection entitySel)
         {
@@ -49,18 +45,16 @@ namespace Vintagestory.GameContent
 
                 if (!(byPlayer is IServerPlayer)) return;
 
-
+                
                 TreeAttribute tree = new TreeAttribute();
                 tree.SetString("playeruid", byPlayer?.PlayerUID);
                 tree.SetStringArray("addtraits", itemslot.Itemstack.ItemAttributes["traitdata"]["add"].AsArray<string>());
                 tree.SetStringArray("removetraits", itemslot.Itemstack.ItemAttributes["traitdata"]["remove"].AsArray<string>());
-
+                tree.SetInt("itemslotId", itemslot.Inventory.GetSlotId(itemslot));
+                
                 api.Event.PushEvent("traitItem", tree);
             }
-            itemslot.TakeOut(1);
-            itemslot.MarkDirty();
         }
-
 
         public override void GetHeldItemInfo(ItemSlot inSlot, StringBuilder dsc, IWorldAccessor world, bool withDebugInfo)
         {

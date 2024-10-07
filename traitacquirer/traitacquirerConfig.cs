@@ -13,6 +13,7 @@ namespace traitacquirer
 
         public string acquireCmdPrivilege = "gamemode";
         public string giveCmdPrivilege = "root";
+        public string listCmdPrivilege = "chat";
         public bool classManuals = true;
         public double manualsAvgPrice = 10;
         //public double manualsVarPrice = 4;
@@ -26,6 +27,7 @@ namespace traitacquirer
             traitacquirerConfig config =  new traitacquirerConfig();
             config.acquireCmdPrivilege.ToString();
             config.giveCmdPrivilege.ToString();
+            config.listCmdPrivilege.ToString();
             config.classManuals = true;
             //config.manualsAvgPrice = 10;
             //config.manualsVarPrice = 4;

@@ -5,20 +5,11 @@ using Vintagestory.API.Config;
 using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
-using Vintagestory.ServerMods.NoObf;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Vintagestory.API.Common.Entities;
 using System.Linq;
 using System;
 using System.Data;
-using System.Xml.Linq;
 using System.Text;
-using Vintagestory.API.MathTools;
-using System.Diagnostics;
-using static System.Collections.Specialized.BitVector32;
-using static System.Net.Mime.MediaTypeNames;
-using System.Reflection;
+using System.Numerics;
 
 namespace traitacquirer
 {
@@ -30,12 +21,12 @@ namespace traitacquirer
         ICoreClientAPI capi;
         ICoreServerAPI sapi;
         
-        public List<Trait> traits = new List<Trait>();
+        public List<ExtendedTrait> traits = new List<ExtendedTrait>();
         public List<CharacterClass> characterClasses = new List<CharacterClass>();
-        public Dictionary<string, Trait> TraitsByCode = new Dictionary<string, Trait>();
+        public Dictionary<string, ExtendedTrait> TraitsByCode = new Dictionary<string, ExtendedTrait>();
         public Dictionary<string, CharacterClass> characterClassesByCode = new Dictionary<string, CharacterClass>();
         GuiDialogCharacterBase charDlg;
-
+        
         GuiElementRichtext richtextElem;
         ElementBounds clippingBounds;
         ElementBounds scrollbarBounds;
@@ -81,6 +72,7 @@ namespace traitacquirer
             api.Event.RegisterEventBusListener(AcquireTraitEventHandler, 0.5, "traitItem");
             acquireTraitCommand();
             giveTraitCommand();
+            listTraitsCommand();
         }
 
         public void acquireTraitCommand()
@@ -96,6 +88,7 @@ namespace traitacquirer
                 var byEntity = args.Caller.Entity;
                 string exitMessage;
                 string traitName = args[0].ToString();
+                bool success;
                 if (traits.Find(x => x.Code == traitName) == null)
                 {
                     return TextCommandResult.Error("Trait does not exist");
@@ -104,13 +97,17 @@ namespace traitacquirer
                 if (byEntity is EntityPlayer) byPlayer = byEntity.World.PlayerByUid(((EntityPlayer)byEntity).PlayerUID);
                 if ((string)args[1] == "rm")
                 {
-                    processTraits(byPlayer?.PlayerUID, new string[0], new string[] { traitName });
+                    success = processTraits(byPlayer?.PlayerUID, new string[0], new string[] { traitName });
                     exitMessage = "Trait Removed";
                 }
                 else
                 {
-                    processTraits(byPlayer?.PlayerUID, new string[] { traitName }, new string[0]);
+                    success = processTraits(byPlayer?.PlayerUID, new string[] { traitName }, new string[0]);
                     exitMessage = "Trait given";
+                }
+                if (!success)
+                {
+                    return TextCommandResult.Error("Unable to execute Command");
                 }
                 return TextCommandResult.Success(exitMessage);
             });
@@ -129,6 +126,7 @@ namespace traitacquirer
                 IServerPlayer targetPlayer = (IServerPlayer)args[1];
                 var byEntity = args.Caller.Entity;
                 string exitMessage;
+                bool success;
                 string traitName = args[0].ToString();
                 if (traits.Find(x => x.Code == traitName) == null)
                 {
@@ -136,15 +134,43 @@ namespace traitacquirer
                 }
                 if ((string)args[2] == "rm")
                 {
-                    processTraits(targetPlayer?.PlayerUID, new string[0], new string[] { traitName });
+                    success = processTraits(targetPlayer?.PlayerUID, new string[0], new string[] { traitName });
                     exitMessage = "Trait Removed";
                 }
                 else
                 {
-                    processTraits(targetPlayer?.PlayerUID, new string[] { traitName }, new string[0]);
-                    exitMessage = "Trait given";
+                    success = processTraits(targetPlayer?.PlayerUID, new string[] { traitName }, new string[0]);
+                    exitMessage = "Trait Given";
+                }
+                if (!success)
+                {
+                    return TextCommandResult.Error("Unable to execute Command");
                 }
                 return TextCommandResult.Success(exitMessage);
+            });
+        }
+
+        public void listTraitsCommand()
+        {
+            var parsers = sapi.ChatCommands.Parsers;
+            sapi.ChatCommands.Create("listTraits")
+            .WithDescription("Returns a sorted list of the loaded trait codes")
+            .RequiresPrivilege(traitacquirerConfig.Current.listCmdPrivilege)
+            .RequiresPlayer()
+            .HandleWith((args) =>
+            {
+                List<string> traitList = new();
+                foreach (ExtendedTrait trait in traits)
+                {
+                    traitList.Add(trait.Code);
+                }
+                traitList.Sort();
+                string returnString = "";
+                foreach (string traitName in traitList)
+                {
+                    returnString += $"{traitName}\n";
+                }
+                return TextCommandResult.Success(returnString);
             });
         }
 
@@ -283,54 +309,88 @@ namespace traitacquirer
         {
             TreeAttribute tree = data as TreeAttribute;
             string playerUid = tree.GetString("playeruid");
+            IPlayer player = api.World.PlayerByUid(playerUid);
             string[] addtraits = tree.GetStringArray("addtraits");
             string[] removetraits = tree.GetStringArray("removetraits");
-            processTraits(playerUid, addtraits, removetraits);
+            int itemslotId = tree.GetInt("itemslotId", -1);
+            ItemSlot itemslot = player.InventoryManager.GetHotbarInventory()[itemslotId];
+            bool success = processTraits(playerUid, addtraits, removetraits);
+            if (success)
+            {
+                itemslot.TakeOut(1);
+                itemslot.MarkDirty();
+            }
         }
 
-        public void processTraits(string playerUid, string[] addtraits, string[] removetraits)
+        public bool processTraits(string playerUid, string[] addtraits, string[] removetraits)
         {
-            IServerPlayer plr = sapi.World.PlayerByUid(playerUid) as IServerPlayer;
+            IServerPlayer plr = api.World.PlayerByUid(playerUid) as IServerPlayer;
             List<string> newExtraTraits = new List<string>();
             string[] extraTraits = plr.Entity.WatchedAttributes.GetStringArray("extraTraits");
+            List<string> incompatibleTraits = new List<string>();
+
+            //Keep traits already added
             if (extraTraits != null)
             {
                 newExtraTraits.AddRange(extraTraits);
             }
-            foreach (string traitName in addtraits) 
-            {
-                Trait trait = traits.Find(x => x.Code == traitName);
-                if (trait == null)
-                {
-                    plr.SendIngameError("Trait is Null", Lang.Get("Trait is Null"));
-                    return;
-                }
-                if (!newExtraTraits.Contains(traitName))
-                {
-                    newExtraTraits.Add(traitName);
-                }
-                else
-                {
-                    plr.SendIngameError("Trait Already Acquired", Lang.Get("Trait Already Acquired"));
-                }
-            }
+
+            //Remove traits from the updated list
             foreach (string traitName in removetraits)
             {
-                Trait trait = traits.Find(x => x.Code == traitName);
+                ExtendedTrait trait = traits.Find(x => x.Code == traitName);
                 if (trait == null)
                 {
                     plr.SendIngameError("Trait is Null", Lang.Get("Trait is Null"));
-                    return;
+                    return false;
                 }
                 if (newExtraTraits.Contains(traitName))
                 {
                     newExtraTraits.Remove(traitName);
                 }
             }
+
+            //Build the new list of traits you'll possess
+            foreach (string traitName in addtraits)
+            {
+                ExtendedTrait trait = traits.Find(x => x.Code == traitName);
+                if (trait == null)
+                {
+                    plr.SendIngameError("Trait is Null", Lang.Get("Trait is Null"));
+                    return false;
+                }
+                if (!newExtraTraits.Contains(traitName))
+                {
+                    newExtraTraits.Add(traitName);
+                }
+            }
+
+            //Determine which traits are incompatible with the updated trait list
+            foreach (string traitName in newExtraTraits)
+            {
+                ExtendedTrait trait = traits.Find(x => x.Code == traitName);
+                if (trait.ExclusiveWith != null)
+                {
+                    incompatibleTraits.AddRange(trait.ExclusiveWith);
+                }
+            }
+
+            //Determine whether there are any incompatibilities in the new list and fail the change
+            foreach (string traitName in newExtraTraits)
+            {
+                if (incompatibleTraits.Contains(traitName))
+                {
+                    plr.SendIngameError("Trait is Incompatible", Lang.Get("Trait is Incompatible"));
+                    return false;
+                }
+            }
+
+            //Update the trait list and apply their effects
             plr.Entity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
             applyTraitAttributes(plr.Entity);
             plr.Entity.WatchedAttributes.MarkPathDirty("extraTraits");
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
+            return true;
         }
 
         public void applyTraitAttributes(EntityPlayer eplr)
@@ -344,10 +404,9 @@ namespace traitacquirer
             {
                 foreach (var statmod in stats.Value.ValuesByKey)
                 {
-                    if (statmod.Key != "base")
+                    if (statmod.Key.Length >= 5 ? statmod.Key[..5] == "trait" : false)
                     {
                         stats.Value.Remove(statmod.Key);
-                        break;
                     }
                 }
             }
@@ -358,7 +417,7 @@ namespace traitacquirer
 
             foreach (var traitcode in allTraits)
             {
-                Trait trait;
+                ExtendedTrait trait;
                 if (TraitsByCode.TryGetValue(traitcode, out trait))
                 {
                     foreach (var val in trait.Attributes)
@@ -366,7 +425,7 @@ namespace traitacquirer
                         string attrcode = val.Key;
                         double attrvalue = val.Value;
 
-                        eplr.Stats.Set(attrcode, traitcode, (float)attrvalue, true);
+                        eplr.Stats.Set($"trait_{attrcode}", traitcode, (float)attrvalue, true);
                     }
                 }
             }
@@ -376,7 +435,7 @@ namespace traitacquirer
         public void loadCharacterClasses() //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
         {
             //onLoadedUniversal();
-            this.traits = api.Assets.Get("config/traits.json").ToObject<List<Trait>>();
+            this.traits = api.Assets.Get("config/traits.json").ToObject<List<ExtendedTrait>>();
             this.characterClasses = api.Assets.Get("config/characterclasses.json").ToObject<List<CharacterClass>>();
 
             foreach (var trait in traits)
