@@ -24,12 +24,13 @@ namespace traitacquirer
             {"giveCmdPrivilege", "root"},
             {"listCmdPrivilege", "chat"},
             {"classManuals", true},
-            {"manualsAvgPrice", 10},
-            {"manualsVarPrice", 4},
-            {"manualsAvgStock", 1},
-            {"manualsVarStock", 0.25},
-            {"manualsAvgLoot", 1},
-            {"manualsVarLoot", 0.25}
+            {"manualsAvgPrice", 10f},
+            {"manualsVarPrice", 4f},
+            {"manualsAvgStock", 1f},
+            {"manualsVarStock", 0.25f},
+            {"manualsAvgLoot", 1f},
+            {"manualsVarLoot", 0.25f},
+            {"manualsChanceLoot", 30f}
         };
 
         public static traitacquirerConfig GetDefault()
@@ -44,7 +45,7 @@ namespace traitacquirer
             traitacquirerConfig traitacquirerConfig = null;
             try
             {
-                traitacquirerConfig = new traitacquirerConfig(api.LoadModConfig<Dictionary<string, dynamic>>("DecorBazaar.json"));
+                traitacquirerConfig = new traitacquirerConfig(api.LoadModConfig<Dictionary<string, dynamic>>("traitacquirer.json"));
                 if (traitacquirerConfig != null)
                 {
                     api.Logger.Notification("Mod Config successfully loaded.");
@@ -62,7 +63,7 @@ namespace traitacquirer
             }
             finally
             {
-                api.StoreModConfig<Dictionary<string, dynamic>>(traitacquirerConfig.configurables, "DecorBazaar.json");
+                api.StoreModConfig<Dictionary<string, dynamic>>(traitacquirerConfig.configurables, "traitacquirer.json");
             }
             setConfig(api, traitacquirerConfig);
         }
