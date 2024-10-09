@@ -3,39 +3,94 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Vintagestory.API.Common;
 using Vintagestory.GameContent;
 
 namespace traitacquirer
 {
     internal class traitacquirerConfig
     {
-        public static traitacquirerConfig Current { get; set; }
+        public traitacquirerConfig() { }
+        public traitacquirerConfig(Dictionary<string, dynamic> config)
+        {
+            foreach (var key in config.Keys)
+            {
+                this.configurables[key] = config[key];
+            }
+        }
 
-        public string acquireCmdPrivilege = "gamemode";
-        public string giveCmdPrivilege = "root";
-        public string listCmdPrivilege = "chat";
-        public bool classManuals = true;
-        public double manualsAvgPrice = 10;
-        //public double manualsVarPrice = 4;
-        //public double manualsAvgStock = 1;
-        //public double manualsVarStock = 0.25;
-        //public double manualsAvgLoot = 1;
-        //public double manualsVarLoot = 0.25;
+        public Dictionary<string, dynamic> configurables = new Dictionary<string, dynamic> {
+            {"acquireCmdPrivilege", "gamemode"},
+            {"giveCmdPrivilege", "root"},
+            {"listCmdPrivilege", "chat"},
+            {"classManuals", true},
+            {"manualsAvgPrice", 10},
+            {"manualsVarPrice", 4},
+            {"manualsAvgStock", 1},
+            {"manualsVarStock", 0.25},
+            {"manualsAvgLoot", 1},
+            {"manualsVarLoot", 0.25}
+        };
 
         public static traitacquirerConfig GetDefault()
         {
-            traitacquirerConfig config =  new traitacquirerConfig();
-            config.acquireCmdPrivilege.ToString();
-            config.giveCmdPrivilege.ToString();
-            config.listCmdPrivilege.ToString();
-            config.classManuals = true;
-            //config.manualsAvgPrice = 10;
-            //config.manualsVarPrice = 4;
-            //config.manualsAvgStock = 1;
-            //config.manualsVarStock = 0.25;
-            //config.manualsAvgLoot = 1;
-            //config.manualsVarLoot = 0.25;
+
+            traitacquirerConfig config = new traitacquirerConfig();
             return config;
+        }
+
+        public static void loadConfig(ICoreAPI api)
+        {
+            traitacquirerConfig traitacquirerConfig = null;
+            try
+            {
+                traitacquirerConfig = new traitacquirerConfig(api.LoadModConfig<Dictionary<string, dynamic>>("DecorBazaar.json"));
+                if (traitacquirerConfig != null)
+                {
+                    api.Logger.Notification("Mod Config successfully loaded.");
+                }
+                else
+                {
+                    api.Logger.Notification("No Mod Config specified. Falling back to default settings");
+                    traitacquirerConfig = traitacquirerConfig.GetDefault();
+                }
+            }
+            catch
+            {
+                traitacquirerConfig = traitacquirerConfig.GetDefault();
+                api.Logger.Error("Failed to load custom mod configuration. Falling back to default settings!");
+            }
+            finally
+            {
+                api.StoreModConfig<Dictionary<string, dynamic>>(traitacquirerConfig.configurables, "DecorBazaar.json");
+            }
+            setConfig(api, traitacquirerConfig);
+        }
+        public static void setConfig(ICoreAPI api, traitacquirerConfig traitacquirerConfig)
+        {
+            foreach (var config in traitacquirerConfig.configurables)
+            {
+                switch (config.Value)
+                {
+                    case int v:
+                        api.World.Config.SetInt(config.Key, v);
+                        break;
+                    case double v:
+                        api.World.Config.SetDouble(config.Key, v);
+                        break;
+                    case float v:
+                        api.World.Config.SetFloat(config.Key, v);
+                        break;
+                    case string v:
+                        api.World.Config.SetString(config.Key, v);
+                        break;
+                    case bool v:
+                        api.World.Config.SetBool(config.Key, v);
+                        break;
+                    default:
+                        throw new NotImplementedException("Type of config value is not handled");
+                }
+            }
         }
     }
 }
