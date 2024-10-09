@@ -3,10 +3,9 @@
     "file": "traitacquirer:itemtypes/utility/trait-manual",
     "op": "add",
     "path": "/enabled",
-    "value": false,
     "condition": {
       "when": "classManuals",
-      "isValue": "false"
+      "useValue": true
     }
   }
 ]
