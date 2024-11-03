@@ -10,6 +10,8 @@ using System;
 using System.Data;
 using System.Text;
 using System.Numerics;
+using System.Collections;
+using System.Diagnostics;
 
 namespace traitacquirer
 {
@@ -49,6 +51,7 @@ namespace traitacquirer
             acquireTraitCommand();
             giveTraitCommand();
             listTraitsCommand();
+            applyAllTraits();
         }
 
         public void acquireTraitCommand()
@@ -150,6 +153,22 @@ namespace traitacquirer
                     returnString += $"{traitName}\n";
                 }
                 return TextCommandResult.Success(returnString);
+            });
+        }
+
+        public void applyAllTraits()
+        {
+            var parsers = sapi.ChatCommands.Parsers;
+            sapi.ChatCommands.GetOrCreate("applyTraits")
+            .WithDescription("Forces to apply all traits")
+            .RequiresPrivilege(this.api.World.Config.GetString("giveCmdPrivilege"))
+            .RequiresPlayer()
+            .WithArgs(parsers.OnlinePlayer("target player"))
+            .HandleWith((args) =>
+            {
+                IServerPlayer targetPlayer = (IServerPlayer)args[0];
+                applyTraitAttributes(targetPlayer.Entity);
+                return TextCommandResult.Success("Force applied new traits");
             });
         }
 
@@ -366,8 +385,8 @@ namespace traitacquirer
 
             //Update the trait list and apply their effects
             plr.Entity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
-            applyTraitAttributes(plr.Entity);
             plr.Entity.WatchedAttributes.MarkPathDirty("extraTraits");
+            applyTraitAttributes(plr.Entity);
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
             return true;
         }
@@ -383,16 +402,42 @@ namespace traitacquirer
             {
                 foreach (var statmod in stats.Value.ValuesByKey.ToList())
                 {
-                    if (statmod.Key.Length >= 5 ? statmod.Key[..5] == "trait" : false)
+                    if (statmod.Key.Length >= 5 ? statmod.Key.Contains("extraTraits") : false)
                     {
+                        eplr.Stats.Remove(stats.Key, statmod.Key);
+                        stats.Value.Remove(statmod.Key);
+                    }
+                    if (statmod.Key.Length >= 5 ? statmod.Key.Contains("trait_") : false)
+                    {
+                        eplr.Stats.Remove(stats.Key, statmod.Key);
+                        stats.Value.Remove(statmod.Key);
+                    }
+                    if (statmod.Key.Length >= 5 ? statmod.Key.Contains("trait") : false)
+                    {
+                        eplr.Stats.Remove(stats.Key, statmod.Key);
                         stats.Value.Remove(statmod.Key);
                     }
                 }
             }
 
-            // Then apply
+
+            //reset vanilla stats and class
+            foreach (KeyValuePair<string, EntityFloatStats> stat in eplr.Stats)
+            {
+                foreach (KeyValuePair<string, EntityStat<float>> item in stat.Value.ValuesByKey)
+                {
+                    if (item.Key == "trait")
+                    {
+                        stat.Value.Remove(item.Key);
+                        break;
+                    }
+                }
+            }
+
+            // Then apply extra traits from commands
             string[] extraTraits = eplr.WatchedAttributes.GetStringArray("extraTraits");
             var allTraits = extraTraits == null ? charclass.Traits : charclass.Traits.Concat(extraTraits);
+            var attrDictionary = new Dictionary<string, float>();
 
             foreach (var traitcode in allTraits)
             {
@@ -404,9 +449,22 @@ namespace traitacquirer
                         string attrcode = val.Key;
                         double attrvalue = val.Value;
 
-                        eplr.Stats.Set($"trait_{attrcode}", traitcode, (float)attrvalue, true);
+                        if (!attrDictionary.ContainsKey(val.Key))
+                        {
+                            attrDictionary.Add(val.Key, (float)val.Value);
+                        }
+                        else
+                        {
+                            var currentVal = attrDictionary.GetValueOrDefault(val.Key) + (float)val.Value;
+                            attrDictionary[val.Key] = currentVal;
+                        }
                     }
                 }
+            }
+
+            foreach (var attr in attrDictionary)
+            {
+                eplr.Stats.Set($"{attr.Key}", "trait", (float)attr.Value, true);
             }
 
             eplr.GetBehavior<EntityBehaviorHealth>()?.MarkDirty();

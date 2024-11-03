@@ -1,13 +1,14 @@
 {
-    "type": "code",
-    "modid": "traitacquirer",
-    "name": "Trait Acquirer",
-    "authors": [
-        "Arkhael"
-    ],
-    "description": "Allows you to acquire additional traits through gameplay.",
-    "version": "0.9.5",
-    "dependencies": {
-        "game": ""
-    }
+  "type": "code",
+  "modid": "edenvalrptraitacquirer",
+  "name": "Edenval RP Trait Acquirer",
+  "authors": [
+    "Arkhael",
+    "propaneko"
+  ],
+  "description": "Allows you to acquire additional traits through gameplay. Patch that makes it work in our server.",
+  "version": "1.0.1",
+  "dependencies": {
+    "game": ""
+  }
 }
