@@ -54,7 +54,8 @@ namespace traitacquirer
         public void acquireTraitCommand()
         {
             var parsers = sapi.ChatCommands.Parsers;
-            sapi.ChatCommands.Create("acquireTrait")
+            sapi.ChatCommands.GetOrCreate("acquireTrait")
+            .WithAlias(new string[] { "at" })
             .WithDescription("Gives the caller the given Trait, removes with the rm flag")
             .RequiresPrivilege(this.api.World.Config.GetString("acquireCmdPrivilege"))
             .RequiresPlayer()
@@ -92,7 +93,8 @@ namespace traitacquirer
         public void giveTraitCommand()
         {
             var parsers = sapi.ChatCommands.Parsers;
-            sapi.ChatCommands.Create("giveTrait")
+            sapi.ChatCommands.GetOrCreate("giveTrait")
+            .WithAlias(new string[] { "gt" })
             .WithDescription("Gives the given Trait to the chosen player, removes with the rm flag")
             .RequiresPrivilege(this.api.World.Config.GetString("giveCmdPrivilege"))
             .RequiresPlayer()
@@ -129,9 +131,10 @@ namespace traitacquirer
         public void listTraitsCommand()
         {
             var parsers = sapi.ChatCommands.Parsers;
-            sapi.ChatCommands.Create("listTraits")
+            sapi.ChatCommands.GetOrCreate("listTraits")
+            .WithAlias(new string[] { "lt" })
             .WithDescription("Returns a sorted list of the loaded trait codes")
-            .RequiresPrivilege(this.api.World.Config.GetString("listCmdPrivelege"))
+            .RequiresPrivilege(this.api.World.Config.GetString("listCmdPrivilege"))
             .RequiresPlayer()
             .HandleWith((args) =>
             {
@@ -378,7 +381,7 @@ namespace traitacquirer
             // Reset 
             foreach (var stats in eplr.Stats)
             {
-                foreach (var statmod in stats.Value.ValuesByKey)
+                foreach (var statmod in stats.Value.ValuesByKey.ToList())
                 {
                     if (statmod.Key.Length >= 5 ? statmod.Key[..5] == "trait" : false)
                     {
