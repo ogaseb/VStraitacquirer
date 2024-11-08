@@ -2,16 +2,15 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 using System.Linq;
 using System;
 using System.Data;
 using System.Text;
-using System.Numerics;
+using edenvalrptraitacquirer.src;
 
-namespace traitacquirer
+namespace edenvalrptraitacquirer
 {
     public class traitacquirerModSystem : ModSystem
     {
@@ -20,13 +19,13 @@ namespace traitacquirer
         ICoreAPI api;
         ICoreClientAPI capi;
         ICoreServerAPI sapi;
-        
+
         public List<ExtendedTrait> traits = new List<ExtendedTrait>();
         public List<CharacterClass> characterClasses = new List<CharacterClass>();
         public Dictionary<string, ExtendedTrait> TraitsByCode = new Dictionary<string, ExtendedTrait>();
         public Dictionary<string, CharacterClass> characterClassesByCode = new Dictionary<string, CharacterClass>();
         GuiDialogCharacterBase charDlg;
-        
+
         GuiElementRichtext richtextElem;
         ElementBounds clippingBounds;
         ElementBounds scrollbarBounds;
@@ -34,29 +33,27 @@ namespace traitacquirer
         public override void Start(ICoreAPI api)
         {
             this.api = api;
-
-            //Register Classes
-            api.RegisterItemClass(Mod.Info.ModID + ".ItemTraitManual", typeof(ItemTraitManual));
             //Load Config
             traitacquirerConfig.loadConfig(api);
         }
 
         public override void StartServerSide(ICoreServerAPI api)
         {
-            this.sapi = api;
+            sapi = api;
             loadCharacterClasses();
-            api.Event.RegisterEventBusListener(AcquireTraitEventHandler, 0.5, "traitItem");
             acquireTraitCommand();
             giveTraitCommand();
             listTraitsCommand();
+            applyAllTraits();
         }
 
         public void acquireTraitCommand()
         {
             var parsers = sapi.ChatCommands.Parsers;
-            sapi.ChatCommands.Create("acquireTrait")
+            sapi.ChatCommands.GetOrCreate("acquireTrait")
+            .WithAlias(new string[] { "at" })
             .WithDescription("Gives the caller the given Trait, removes with the rm flag")
-            .RequiresPrivilege(this.api.World.Config.GetString("acquireCmdPrivilege"))
+            .RequiresPrivilege(api.World.Config.GetString("acquireCmdPrivilege"))
             .RequiresPlayer()
             .WithArgs(parsers.Word("trait name"), parsers.OptionalWordRange("remove flag", "rm"))
             .HandleWith((args) =>
@@ -92,9 +89,10 @@ namespace traitacquirer
         public void giveTraitCommand()
         {
             var parsers = sapi.ChatCommands.Parsers;
-            sapi.ChatCommands.Create("giveTrait")
+            sapi.ChatCommands.GetOrCreate("giveTrait")
+            .WithAlias(new string[] { "gt" })
             .WithDescription("Gives the given Trait to the chosen player, removes with the rm flag")
-            .RequiresPrivilege(this.api.World.Config.GetString("giveCmdPrivilege"))
+            .RequiresPrivilege(api.World.Config.GetString("giveCmdPrivilege"))
             .RequiresPlayer()
             .WithArgs(parsers.Word("trait name"), parsers.OnlinePlayer("target player"), parsers.OptionalWordRange("remove flag", "rm"))
             .HandleWith((args) =>
@@ -129,9 +127,10 @@ namespace traitacquirer
         public void listTraitsCommand()
         {
             var parsers = sapi.ChatCommands.Parsers;
-            sapi.ChatCommands.Create("listTraits")
+            sapi.ChatCommands.GetOrCreate("listTraits")
+            .WithAlias(new string[] { "lt" })
             .WithDescription("Returns a sorted list of the loaded trait codes")
-            .RequiresPrivilege(this.api.World.Config.GetString("listCmdPrivelege"))
+            .RequiresPrivilege(api.World.Config.GetString("listCmdPrivilege"))
             .RequiresPlayer()
             .HandleWith((args) =>
             {
@@ -150,13 +149,29 @@ namespace traitacquirer
             });
         }
 
+        public void applyAllTraits()
+        {
+            var parsers = sapi.ChatCommands.Parsers;
+            sapi.ChatCommands.GetOrCreate("applyTraits")
+            .WithDescription("Forces to apply all traits")
+            .RequiresPrivilege(api.World.Config.GetString("giveCmdPrivilege"))
+            .RequiresPlayer()
+            .WithArgs(parsers.OnlinePlayer("target player"))
+            .HandleWith((args) =>
+            {
+                IServerPlayer targetPlayer = (IServerPlayer)args[0];
+                applyTraitAttributes(targetPlayer.Entity);
+                return TextCommandResult.Success("Force applied new traits");
+            });
+        }
+
         public override void StartClientSide(ICoreClientAPI api)
         {
-            this.capi = api;
+            capi = api;
             loadCharacterClasses();
             charDlg = api.Gui.LoadedGuis.Find(dlg => dlg is GuiDialogCharacterBase) as GuiDialogCharacterBase;
             charDlg.RenderTabHandlers.Add(composeTraitsTab);
-            
+
             api.Event.BlockTexturesLoaded += cleanupTraitsTab;
         }
 
@@ -175,16 +190,16 @@ namespace traitacquirer
         private void composeTraitsTab(GuiComposer compo)
         {
 
-            this.clippingBounds = ElementBounds.Fixed(0, 25, 385, 310);
+            clippingBounds = ElementBounds.Fixed(0, 25, 385, 310);
             compo.BeginClip(clippingBounds);
             compo.AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 0, 385, 310), "text");
             compo.EndClip();
-            this.scrollbarBounds = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth - 3, -6).WithFixedWidth(6).FixedGrow(0, 2);
-            compo.AddVerticalScrollbar(OnNewScrollbarValue, this.scrollbarBounds, "scrollbar");
-            this.richtextElem = compo.GetRichtext("text");
+            scrollbarBounds = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth - 3, -6).WithFixedWidth(6).FixedGrow(0, 2);
+            compo.AddVerticalScrollbar(OnNewScrollbarValue, scrollbarBounds, "scrollbar");
+            richtextElem = compo.GetRichtext("text");
 
             compo.GetScrollbar("scrollbar").SetHeights(
-                (float)100, (float)310
+                100, 310
             );
         }
         private void OnNewScrollbarValue(float value)
@@ -202,7 +217,7 @@ namespace traitacquirer
             StringBuilder fulldesc = new StringBuilder();
             StringBuilder attributes = new StringBuilder();
 
-            fulldesc.AppendLine(Lang.Get("Class Traits: "));
+            fulldesc.AppendLine(Lang.Get("edenvalrptraitacquirer:class-traits"));
 
             var chartraits = chclass.Traits.Select(code => TraitsByCode[code]).OrderBy(trait => (int)trait.Type);
 
@@ -240,7 +255,7 @@ namespace traitacquirer
                 fulldesc.AppendLine(Lang.Get("No positive or negative traits"));
             }
 
-            fulldesc.AppendLine(Lang.Get("Extra Traits: "));
+            fulldesc.AppendLine(Lang.Get("edenvalrptraitacquirer:extra-traits"));
 
             string[] extraTraits = capi.World.Player.Entity.WatchedAttributes.GetStringArray("extraTraits");
             IOrderedEnumerable<string> extratraits = Enumerable.Empty<string>().OrderBy(x => 1); ;
@@ -279,23 +294,6 @@ namespace traitacquirer
             }
 
             return fulldesc.ToString();
-        }
-
-        public void AcquireTraitEventHandler(string eventName, ref EnumHandling handling, IAttribute data)
-        {
-            TreeAttribute tree = data as TreeAttribute;
-            string playerUid = tree.GetString("playeruid");
-            IPlayer player = api.World.PlayerByUid(playerUid);
-            string[] addtraits = tree.GetStringArray("addtraits");
-            string[] removetraits = tree.GetStringArray("removetraits");
-            int itemslotId = tree.GetInt("itemslotId", -1);
-            ItemSlot itemslot = player.InventoryManager.GetHotbarInventory()[itemslotId];
-            bool success = processTraits(playerUid, addtraits, removetraits);
-            if (success)
-            {
-                itemslot.TakeOut(1);
-                itemslot.MarkDirty();
-            }
         }
 
         public bool processTraits(string playerUid, string[] addtraits, string[] removetraits)
@@ -363,8 +361,8 @@ namespace traitacquirer
 
             //Update the trait list and apply their effects
             plr.Entity.WatchedAttributes.SetStringArray("extraTraits", newExtraTraits.ToArray());
-            applyTraitAttributes(plr.Entity);
             plr.Entity.WatchedAttributes.MarkPathDirty("extraTraits");
+            applyTraitAttributes(plr.Entity);
             plr.Entity.World.PlaySoundAt(new AssetLocation("sounds/effect/writing"), plr.Entity);
             return true;
         }
@@ -378,18 +376,44 @@ namespace traitacquirer
             // Reset 
             foreach (var stats in eplr.Stats)
             {
-                foreach (var statmod in stats.Value.ValuesByKey)
+                foreach (var statmod in stats.Value.ValuesByKey.ToList())
                 {
-                    if (statmod.Key.Length >= 5 ? statmod.Key[..5] == "trait" : false)
+                    if (statmod.Key.Length >= 5 ? statmod.Key.Contains("extraTraits") : false)
                     {
+                        eplr.Stats.Remove(stats.Key, statmod.Key);
+                        stats.Value.Remove(statmod.Key);
+                    }
+                    if (statmod.Key.Length >= 5 ? statmod.Key.Contains("trait_") : false)
+                    {
+                        eplr.Stats.Remove(stats.Key, statmod.Key);
+                        stats.Value.Remove(statmod.Key);
+                    }
+                    if (statmod.Key.Length >= 5 ? statmod.Key.Contains("trait") : false)
+                    {
+                        eplr.Stats.Remove(stats.Key, statmod.Key);
                         stats.Value.Remove(statmod.Key);
                     }
                 }
             }
 
-            // Then apply
+
+            //reset vanilla stats and class
+            foreach (KeyValuePair<string, EntityFloatStats> stat in eplr.Stats)
+            {
+                foreach (KeyValuePair<string, EntityStat<float>> item in stat.Value.ValuesByKey)
+                {
+                    if (item.Key == "trait")
+                    {
+                        stat.Value.Remove(item.Key);
+                        break;
+                    }
+                }
+            }
+
+            // Then apply extra traits from commands
             string[] extraTraits = eplr.WatchedAttributes.GetStringArray("extraTraits");
             var allTraits = extraTraits == null ? charclass.Traits : charclass.Traits.Concat(extraTraits);
+            var attrDictionary = new Dictionary<string, float>();
 
             foreach (var traitcode in allTraits)
             {
@@ -401,9 +425,22 @@ namespace traitacquirer
                         string attrcode = val.Key;
                         double attrvalue = val.Value;
 
-                        eplr.Stats.Set($"trait_{attrcode}", traitcode, (float)attrvalue, true);
+                        if (!attrDictionary.ContainsKey(val.Key))
+                        {
+                            attrDictionary.Add(val.Key, (float)val.Value);
+                        }
+                        else
+                        {
+                            var currentVal = attrDictionary.GetValueOrDefault(val.Key) + (float)val.Value;
+                            attrDictionary[val.Key] = currentVal;
+                        }
                     }
                 }
+            }
+
+            foreach (var attr in attrDictionary)
+            {
+                eplr.Stats.Set($"{attr.Key}", "trait", (float)attr.Value, true);
             }
 
             eplr.GetBehavior<EntityBehaviorHealth>()?.MarkDirty();
@@ -411,8 +448,8 @@ namespace traitacquirer
         public void loadCharacterClasses() //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
         {
             //onLoadedUniversal();
-            this.traits = api.Assets.Get("config/traits.json").ToObject<List<ExtendedTrait>>();
-            this.characterClasses = api.Assets.Get("config/characterclasses.json").ToObject<List<CharacterClass>>();
+            traits = api.Assets.Get("config/traits.json").ToObject<List<ExtendedTrait>>();
+            characterClasses = api.Assets.Get("config/characterclasses.json").ToObject<List<CharacterClass>>();
 
             foreach (var trait in traits)
             {
