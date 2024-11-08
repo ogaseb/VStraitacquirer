@@ -2,15 +2,15 @@
 using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.Config;
-using Vintagestory.API.Datastructures;
 using Vintagestory.API.Server;
 using Vintagestory.GameContent;
 using System.Linq;
 using System;
 using System.Data;
 using System.Text;
+using edenvalrptraitacquirer.src;
 
-namespace traitacquirer
+namespace edenvalrptraitacquirer
 {
     public class traitacquirerModSystem : ModSystem
     {
@@ -19,13 +19,13 @@ namespace traitacquirer
         ICoreAPI api;
         ICoreClientAPI capi;
         ICoreServerAPI sapi;
-        
+
         public List<ExtendedTrait> traits = new List<ExtendedTrait>();
         public List<CharacterClass> characterClasses = new List<CharacterClass>();
         public Dictionary<string, ExtendedTrait> TraitsByCode = new Dictionary<string, ExtendedTrait>();
         public Dictionary<string, CharacterClass> characterClassesByCode = new Dictionary<string, CharacterClass>();
         GuiDialogCharacterBase charDlg;
-        
+
         GuiElementRichtext richtextElem;
         ElementBounds clippingBounds;
         ElementBounds scrollbarBounds;
@@ -39,7 +39,7 @@ namespace traitacquirer
 
         public override void StartServerSide(ICoreServerAPI api)
         {
-            this.sapi = api;
+            sapi = api;
             loadCharacterClasses();
             acquireTraitCommand();
             giveTraitCommand();
@@ -53,7 +53,7 @@ namespace traitacquirer
             sapi.ChatCommands.GetOrCreate("acquireTrait")
             .WithAlias(new string[] { "at" })
             .WithDescription("Gives the caller the given Trait, removes with the rm flag")
-            .RequiresPrivilege(this.api.World.Config.GetString("acquireCmdPrivilege"))
+            .RequiresPrivilege(api.World.Config.GetString("acquireCmdPrivilege"))
             .RequiresPlayer()
             .WithArgs(parsers.Word("trait name"), parsers.OptionalWordRange("remove flag", "rm"))
             .HandleWith((args) =>
@@ -92,7 +92,7 @@ namespace traitacquirer
             sapi.ChatCommands.GetOrCreate("giveTrait")
             .WithAlias(new string[] { "gt" })
             .WithDescription("Gives the given Trait to the chosen player, removes with the rm flag")
-            .RequiresPrivilege(this.api.World.Config.GetString("giveCmdPrivilege"))
+            .RequiresPrivilege(api.World.Config.GetString("giveCmdPrivilege"))
             .RequiresPlayer()
             .WithArgs(parsers.Word("trait name"), parsers.OnlinePlayer("target player"), parsers.OptionalWordRange("remove flag", "rm"))
             .HandleWith((args) =>
@@ -130,7 +130,7 @@ namespace traitacquirer
             sapi.ChatCommands.GetOrCreate("listTraits")
             .WithAlias(new string[] { "lt" })
             .WithDescription("Returns a sorted list of the loaded trait codes")
-            .RequiresPrivilege(this.api.World.Config.GetString("listCmdPrivilege"))
+            .RequiresPrivilege(api.World.Config.GetString("listCmdPrivilege"))
             .RequiresPlayer()
             .HandleWith((args) =>
             {
@@ -154,7 +154,7 @@ namespace traitacquirer
             var parsers = sapi.ChatCommands.Parsers;
             sapi.ChatCommands.GetOrCreate("applyTraits")
             .WithDescription("Forces to apply all traits")
-            .RequiresPrivilege(this.api.World.Config.GetString("giveCmdPrivilege"))
+            .RequiresPrivilege(api.World.Config.GetString("giveCmdPrivilege"))
             .RequiresPlayer()
             .WithArgs(parsers.OnlinePlayer("target player"))
             .HandleWith((args) =>
@@ -167,11 +167,11 @@ namespace traitacquirer
 
         public override void StartClientSide(ICoreClientAPI api)
         {
-            this.capi = api;
+            capi = api;
             loadCharacterClasses();
             charDlg = api.Gui.LoadedGuis.Find(dlg => dlg is GuiDialogCharacterBase) as GuiDialogCharacterBase;
             charDlg.RenderTabHandlers.Add(composeTraitsTab);
-            
+
             api.Event.BlockTexturesLoaded += cleanupTraitsTab;
         }
 
@@ -190,16 +190,16 @@ namespace traitacquirer
         private void composeTraitsTab(GuiComposer compo)
         {
 
-            this.clippingBounds = ElementBounds.Fixed(0, 25, 385, 310);
+            clippingBounds = ElementBounds.Fixed(0, 25, 385, 310);
             compo.BeginClip(clippingBounds);
             compo.AddRichtext(getClassTraitText(), CairoFont.WhiteDetailText().WithLineHeightMultiplier(1.15), ElementBounds.Fixed(0, 0, 385, 310), "text");
             compo.EndClip();
-            this.scrollbarBounds = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth - 3, -6).WithFixedWidth(6).FixedGrow(0, 2);
-            compo.AddVerticalScrollbar(OnNewScrollbarValue, this.scrollbarBounds, "scrollbar");
-            this.richtextElem = compo.GetRichtext("text");
+            scrollbarBounds = clippingBounds.CopyOffsetedSibling(clippingBounds.fixedWidth - 3, -6).WithFixedWidth(6).FixedGrow(0, 2);
+            compo.AddVerticalScrollbar(OnNewScrollbarValue, scrollbarBounds, "scrollbar");
+            richtextElem = compo.GetRichtext("text");
 
             compo.GetScrollbar("scrollbar").SetHeights(
-                (float)100, (float)310
+                100, 310
             );
         }
         private void OnNewScrollbarValue(float value)
@@ -448,8 +448,8 @@ namespace traitacquirer
         public void loadCharacterClasses() //Taken from SurvivalMod Character.cs, CharacterSystem class where it is a private method
         {
             //onLoadedUniversal();
-            this.traits = api.Assets.Get("config/traits.json").ToObject<List<ExtendedTrait>>();
-            this.characterClasses = api.Assets.Get("config/characterclasses.json").ToObject<List<CharacterClass>>();
+            traits = api.Assets.Get("config/traits.json").ToObject<List<ExtendedTrait>>();
+            characterClasses = api.Assets.Get("config/characterclasses.json").ToObject<List<CharacterClass>>();
 
             foreach (var trait in traits)
             {

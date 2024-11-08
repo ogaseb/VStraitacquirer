@@ -30,7 +30,7 @@
   </ItemGroup>
 
 <ItemGroup>
-  <Content Include="traitacquirerConfig.cs" />
+  <Content Include="src\traitacquirerConfig.cs" />
   <Content Include="modinfo.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
   </Content>
