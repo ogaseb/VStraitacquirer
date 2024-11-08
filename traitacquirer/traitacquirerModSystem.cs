@@ -9,9 +9,6 @@ using System.Linq;
 using System;
 using System.Data;
 using System.Text;
-using System.Numerics;
-using System.Collections;
-using System.Diagnostics;
 
 namespace traitacquirer
 {
@@ -36,9 +33,6 @@ namespace traitacquirer
         public override void Start(ICoreAPI api)
         {
             this.api = api;
-
-            //Register Classes
-            api.RegisterItemClass(Mod.Info.ModID + ".ItemTraitManual", typeof(ItemTraitManual));
             //Load Config
             traitacquirerConfig.loadConfig(api);
         }
@@ -47,7 +41,6 @@ namespace traitacquirer
         {
             this.sapi = api;
             loadCharacterClasses();
-            api.Event.RegisterEventBusListener(AcquireTraitEventHandler, 0.5, "traitItem");
             acquireTraitCommand();
             giveTraitCommand();
             listTraitsCommand();
@@ -224,7 +217,7 @@ namespace traitacquirer
             StringBuilder fulldesc = new StringBuilder();
             StringBuilder attributes = new StringBuilder();
 
-            fulldesc.AppendLine(Lang.Get("Class Traits: "));
+            fulldesc.AppendLine(Lang.Get("edenvalrptraitacquirer:class-traits"));
 
             var chartraits = chclass.Traits.Select(code => TraitsByCode[code]).OrderBy(trait => (int)trait.Type);
 
@@ -262,7 +255,7 @@ namespace traitacquirer
                 fulldesc.AppendLine(Lang.Get("No positive or negative traits"));
             }
 
-            fulldesc.AppendLine(Lang.Get("Extra Traits: "));
+            fulldesc.AppendLine(Lang.Get("edenvalrptraitacquirer:extra-traits"));
 
             string[] extraTraits = capi.World.Player.Entity.WatchedAttributes.GetStringArray("extraTraits");
             IOrderedEnumerable<string> extratraits = Enumerable.Empty<string>().OrderBy(x => 1); ;
@@ -301,23 +294,6 @@ namespace traitacquirer
             }
 
             return fulldesc.ToString();
-        }
-
-        public void AcquireTraitEventHandler(string eventName, ref EnumHandling handling, IAttribute data)
-        {
-            TreeAttribute tree = data as TreeAttribute;
-            string playerUid = tree.GetString("playeruid");
-            IPlayer player = api.World.PlayerByUid(playerUid);
-            string[] addtraits = tree.GetStringArray("addtraits");
-            string[] removetraits = tree.GetStringArray("removetraits");
-            int itemslotId = tree.GetInt("itemslotId", -1);
-            ItemSlot itemslot = player.InventoryManager.GetHotbarInventory()[itemslotId];
-            bool success = processTraits(playerUid, addtraits, removetraits);
-            if (success)
-            {
-                itemslot.TakeOut(1);
-                itemslot.MarkDirty();
-            }
         }
 
         public bool processTraits(string playerUid, string[] addtraits, string[] removetraits)

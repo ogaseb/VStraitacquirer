@@ -22,15 +22,7 @@ namespace traitacquirer
         public Dictionary<string, dynamic> configurables = new Dictionary<string, dynamic> {
             {"acquireCmdPrivilege", "gamemode"},
             {"giveCmdPrivilege", "root"},
-            {"listCmdPrivilege", "chat"},
-            {"classManuals", true},
-            {"manualsAvgPrice", 10f},
-            {"manualsVarPrice", 4f},
-            {"manualsAvgStock", 1f},
-            {"manualsVarStock", 0.25f},
-            {"manualsAvgLoot", 1f},
-            {"manualsVarLoot", 0.25f},
-            {"manualsChanceLoot", 30f}
+            {"listCmdPrivilege", "chat"}
         };
 
         public static traitacquirerConfig GetDefault()
